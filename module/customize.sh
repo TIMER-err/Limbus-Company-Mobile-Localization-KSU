@@ -7,18 +7,19 @@ ui_print "*******************************"
 [ "$KSU" = "true" ] || abort "仅支持 KernelSU / SukiSU"
 [ "$ARCH" = "arm64" ] || abort "当前仅支持 arm64 设备"
 
-metamodule=false
-for prop in /data/adb/modules/*/module.prop; do
-    [ -f "$prop" ] || continue
-    module_dir=${prop%/*}
-    [ ! -e "$module_dir/disable" ] || continue
-    [ ! -e "$module_dir/remove" ] || continue
-    if grep -Eq '^metamodule=(true|1)$' "$prop"; then
-        metamodule=true
-        break
-    fi
-done
-[ "$metamodule" = "true" ] || abort "请先安装并启用 meta-overlayfs、Mountify 等元模块"
+METAMODULE_DIR=$(readlink -f /data/adb/metamodule 2>/dev/null)
+case "$METAMODULE_DIR" in
+    /data/adb/modules/*) ;;
+    *) abort "未检测到活动元模块；请先安装并启用 meta-overlayfs、Mountify 等元模块" ;;
+esac
+METAMODULE_PROP="$METAMODULE_DIR/module.prop"
+[ -f "$METAMODULE_PROP" ] || abort "活动元模块缺少 module.prop，安装已中断"
+[ ! -e "$METAMODULE_DIR/disable" ] || abort "当前元模块已禁用，安装已中断"
+[ ! -e "$METAMODULE_DIR/remove" ] || abort "当前元模块正等待卸载，安装已中断"
+grep -Eq '^metamodule=(true|1)$' "$METAMODULE_PROP" || abort "当前活动模块不是有效元模块，安装已中断"
+metamodule_name=$(sed -n 's/^name=//p' "$METAMODULE_PROP" | head -n 1)
+metamodule_version=$(sed -n 's/^version=//p' "$METAMODULE_PROP" | head -n 1)
+ui_print "- 活动元模块：${metamodule_name:-未知} ${metamodule_version:-}"
 
 DATA=/data/adb/limbus-localization
 SYSTEM_CA="$DATA/system-ca"
@@ -48,6 +49,7 @@ set_perm "$MODPATH/post-fs-data.sh" 0 0 0755
 set_perm "$MODPATH/post-mount.sh" 0 0 0755
 set_perm "$MODPATH/service.sh" 0 0 0755
 set_perm "$MODPATH/action.sh" 0 0 0755
+set_perm "$MODPATH/status.sh" 0 0 0755
 set_perm "$MODPATH/uninstall.sh" 0 0 0755
 
 mkdir -p "$DATA" "$SYSTEM_CA" "$MODULE_CA" || abort "无法创建模块目录"
@@ -67,7 +69,7 @@ done
 
 ui_print "- 下载并校验最新汉化资源"
 if ! "$MODPATH/bin/limbus-proxy" update --data "$DATA"; then
-    ui_print "! 首次下载失败；重启后可通过模块 Action 重试"
+    ui_print "! 首次下载失败；重启后可从模块管理器再次执行更新"
 fi
 
 ui_print "- 安装完成，请重启设备"

@@ -10,6 +10,8 @@
 - KernelSU / SukiSU
 - 已安装并启用一个元模块，例如官方 `meta-overlayfs` 或 Mountify
 
+安装器会验证 KernelSU 当前活动的元模块；未安装、已禁用、正等待卸载或元数据无效时会立即中断安装。
+
 ## 安装
 
 1. 从本仓库 Release 下载 `limbus-localization-ksu.zip`。
@@ -20,6 +22,8 @@
 首次安装会下载并校验最新的 `localize_jp.zip` 与 `manifest.json`。以后在模块管理器中执行本模块的操作脚本即可更新；资源切换为原子操作，游戏读取期间不会看到半成品。
 
 模块自身通过 `update.json` 接收 KernelSU / SukiSU 管理器的更新提示；汉化资源更新与模块程序更新互相独立。
+
+模块描述会在开机和资源更新后刷新，显示代理、当前汉化版本、CA 挂载与域名映射状态。
 
 ## 系统安全
 

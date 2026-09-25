@@ -17,7 +17,10 @@ is_running() {
     [ "$(readlink -f "/proc/$process_id/exe" 2>/dev/null)" = "$BIN" ]
 }
 
-is_running && exit 0
+if is_running; then
+    "$MODDIR/status.sh"
+    exit 0
+fi
 rm -f "$PID"
 
 "$BIN" serve --data "$DATA" >>"$LOG" 2>&1 &
@@ -26,5 +29,8 @@ sleep 1
 if ! is_running; then
     rm -f "$PID"
     echo "limbus-proxy 启动失败，请查看 $LOG" >> "$LOG"
+    "$MODDIR/status.sh"
     exit 1
 fi
+
+"$MODDIR/status.sh"

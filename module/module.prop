@@ -1,7 +1,7 @@
 id=limbus-localization
 name=Limbus Company 移动端汉化
-version=v1.0.4
-versionCode=10004
+version=v1.0.5
+versionCode=10005
 author=TIMER-err
-description=本地 HTTPS 汉化资源替换，支持在线更新汉化资源
+description=状态:等待重启｜汉化:待检测｜CA:待挂载｜域名:待映射
 updateJson=https://raw.githubusercontent.com/TIMER-err/Limbus-Company-Mobile-Localization-KSU/main/update.json

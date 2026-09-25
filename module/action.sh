@@ -21,6 +21,7 @@ echo "$update_result"
 if [ "$update_status" -ne 0 ]; then
     echo ""
     echo "更新检查失败，请稍后重试。"
+    "$MODDIR/status.sh"
     exit "$update_status"
 fi
 
@@ -34,8 +35,10 @@ if is_running; then
     echo "服务状态：运行中（PID $(cat "$PID")）"
 else
     echo "服务状态：启动失败，请查看 $DATA/logs/service.log"
+    "$MODDIR/status.sh"
     exit 1
 fi
 
+"$MODDIR/status.sh"
 echo ""
 echo "操作完成。"
