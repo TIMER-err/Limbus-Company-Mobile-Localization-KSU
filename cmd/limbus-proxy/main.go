@@ -141,19 +141,27 @@ func initialize(dataDir, certDir string) error {
 
 	caCertPath := filepath.Join(sslDir, "ca.crt")
 	caKeyPath := filepath.Join(sslDir, "ca.key")
-	if _, err := os.Stat(caCertPath); errors.Is(err, os.ErrNotExist) {
+	caCreated := false
+	if !regularFileExists(caCertPath) || !regularFileExists(caKeyPath) {
 		if err := generateCA(caCertPath, caKeyPath); err != nil {
 			return err
 		}
-	}
-	if err := generateServerCertificate(caCertPath, caKeyPath, filepath.Join(sslDir, "server.crt"), filepath.Join(sslDir, "server.key")); err != nil {
-		return err
+		caCreated = true
 	}
 
 	caDER, err := readCertificate(caCertPath)
 	if err != nil {
 		return err
 	}
+	serverCertPath := filepath.Join(sslDir, "server.crt")
+	serverKeyPath := filepath.Join(sslDir, "server.key")
+	serverCreated := !serverCertificateReusable(caDER, serverCertPath, serverKeyPath)
+	if serverCreated {
+		if err := generateServerCertificate(caCertPath, caKeyPath, serverCertPath, serverKeyPath); err != nil {
+			return err
+		}
+	}
+
 	hash := subjectHashOld(caDER.RawSubject)
 	destination := filepath.Join(certDir, hash+".0")
 	contents, err := os.ReadFile(caCertPath)
@@ -163,8 +171,36 @@ func initialize(dataDir, certDir string) error {
 	if err := atomicWrite(destination, contents, 0o644); err != nil {
 		return err
 	}
-	fmt.Printf("CA=%s\nSHA256=%s\n", destination, fingerprint(caDER.Raw))
+	caStatus := "复用"
+	if caCreated {
+		caStatus = "新生成"
+	}
+	serverStatus := "复用"
+	if serverCreated {
+		serverStatus = "新签发"
+	}
+	fmt.Printf("CA：%s\nHTTPS 服务证书：%s\nCA 文件：%s\nCA SHA-256：%s\n", caStatus, serverStatus, destination, fingerprint(caDER.Raw))
 	return nil
+}
+
+func regularFileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.Mode().IsRegular()
+}
+
+func serverCertificateReusable(ca *x509.Certificate, certPath, keyPath string) bool {
+	if !regularFileExists(certPath) || !regularFileExists(keyPath) {
+		return false
+	}
+	cert, err := readCertificate(certPath)
+	if err != nil || time.Now().Add(30*24*time.Hour).After(cert.NotAfter) || time.Now().Before(cert.NotBefore) {
+		return false
+	}
+	if cert.VerifyHostname(cdnHost) != nil || cert.CheckSignatureFrom(ca) != nil {
+		return false
+	}
+	_, err = tls.LoadX509KeyPair(certPath, keyPath)
+	return err == nil
 }
 
 func generateCA(certPath, keyPath string) error {

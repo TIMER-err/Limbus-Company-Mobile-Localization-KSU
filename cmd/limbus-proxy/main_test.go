@@ -62,6 +62,11 @@ func TestInitializeCreatesReusableCA(t *testing.T) {
 	if _, err := os.Stat(installed); err != nil {
 		t.Fatalf("Android CA file missing: %v", err)
 	}
+	serverPath := filepath.Join(dataDir, "ssl", "server.crt")
+	firstServer, err := os.ReadFile(serverPath)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := initialize(dataDir, certDir); err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +77,14 @@ func TestInitializeCreatesReusableCA(t *testing.T) {
 	if string(firstCA) != string(secondCA) {
 		t.Fatal("existing CA was unexpectedly replaced")
 	}
-	server, err := readCertificate(filepath.Join(dataDir, "ssl", "server.crt"))
+	secondServer, err := os.ReadFile(serverPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(firstServer) != string(secondServer) {
+		t.Fatal("valid server certificate was unexpectedly replaced")
+	}
+	server, err := readCertificate(serverPath)
 	if err != nil {
 		t.Fatal(err)
 	}

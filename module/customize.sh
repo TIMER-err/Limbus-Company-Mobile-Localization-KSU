@@ -41,7 +41,7 @@ if [ ! -s "$DATA/ssl/ca.crt" ] || [ ! -s "$DATA/ssl/ca.key" ]; then
         esac
     done
 else
-    ui_print "- 复用本机已有 CA，不重复请求确认"
+    ui_print "- 检测到本机已有 CA，将验证并复用"
 fi
 
 set_perm "$MODPATH/bin/limbus-proxy" 0 0 0755
@@ -57,7 +57,7 @@ chmod 0700 "$DATA"
 chmod 0755 "$MODPATH/system" "$MODPATH/system/etc" \
     "$MODPATH/system/etc/security" "$MODULE_CA"
 
-ui_print "- 生成设备专属证书"
+ui_print "- 准备设备证书"
 "$MODPATH/bin/limbus-proxy" init \
     --data "$DATA" \
     --cert-dir "$SYSTEM_CA" || abort "证书生成失败"
