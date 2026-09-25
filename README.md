@@ -27,12 +27,17 @@
 
 ## 系统安全
 
+- 不修改游戏本体：不会改写 APK、签名、游戏私有数据或游戏进程，也不注入、Hook 游戏代码。
+- 只代理官方 CDN 域名 `downloadcommon.limbuscompanycdn.org`，不会代理登录、支付或其他游戏 API。
+- 本地代理只替换 `LocalizePatchInfo.json` 与 `localize_jp.zip` 两个汉化资源；同一 CDN 下的其他请求会经过 TLS 证书校验后回源官方服务器。
 - 不写入 `/system`、`/vendor` 或 APEX 原始分区。
 - Android 13 及以下的系统 CA 由元模块挂载。Mountify 会刻意跳过含 `hosts` 的模块，因此 `hosts` 在元模块完成后复制到 `/dev` 临时文件、只追加一个本地映射，再 bind mount 到原路径；不会写入原文件。
 - Android 14 及以上会在开机早期复制完整 Conscrypt CA 目录到临时目录，加入模块 CA 后 bind mount 回原路径。原目录内容不会被修改。
 - CA 私钥只保存在 `/data/adb/limbus-localization/ssl`，权限为 root-only，不会上传。
 - 汉化资源先验证 Release 中的 SHA-256、ZIP CRC 和 manifest JSON，再切换为当前版本。
 - 卸载模块会停止代理并清理模块数据；重启后所有临时挂载消失。
+
+模块启用期间，设备专属 CA 会临时加入系统信任库，这是拦截官方 CDN HTTPS 请求所必需的能力。CA 私钥仅允许 root 读取，本地代理只监听 `127.0.0.1:443`；禁用或卸载模块并重启后，该 CA 不再受系统信任。
 
 ## 工作方式
 
