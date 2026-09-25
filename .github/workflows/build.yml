@@ -24,6 +24,8 @@ jobs:
         run: |
           test -z "$(gofmt -l .)"
           bash -n module/*.sh scripts/build.sh
+          test "$(jq -r .version update.json)" = "$(sed -n 's/^version=//p' module/module.prop)"
+          test "$(jq -r .versionCode update.json)" = "$(sed -n 's/^versionCode=//p' module/module.prop)"
           go test ./...
           go vet ./...
 

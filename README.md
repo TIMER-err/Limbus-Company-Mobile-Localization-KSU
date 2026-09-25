@@ -1,6 +1,6 @@
 # Limbus Company 移动端汉化 · KernelSU 模块
 
-面向已 Root 的 Android 设备，免 Termux、MoveCertificate 与 Clash。模块在本机生成专属 CA，通过本地 HTTPS 代理替换汉化资源；模块列表中的 Action 按钮用于检查并安装最新资源。
+面向已 Root 的 Android 设备，免 Termux、MoveCertificate 与 Clash。模块在本机生成专属 CA，通过本地 HTTPS 代理替换汉化资源，并可通过模块管理器在线更新汉化资源。
 
 资源来自 [`TIMER-err/Limbus-Company-Mobile-Localization`](https://github.com/TIMER-err/Limbus-Company-Mobile-Localization)。
 
@@ -17,7 +17,9 @@
 3. 安装器显示确认提示后，按音量加键允许生成并挂载设备专属 CA；音量减键取消。
 4. 安装完成后重启。
 
-首次安装会下载并校验最新的 `localize_jp.zip` 与 `manifest.json`。以后点击模块的 Action 按钮即可更新，资源切换为原子操作，游戏读取期间不会看到半成品。
+首次安装会下载并校验最新的 `localize_jp.zip` 与 `manifest.json`。以后在模块管理器中执行本模块的操作脚本即可更新；资源切换为原子操作，游戏读取期间不会看到半成品。
+
+模块自身通过 `update.json` 接收 KernelSU / SukiSU 管理器的更新提示；汉化资源更新与模块程序更新互相独立。
 
 ## 系统安全
 
