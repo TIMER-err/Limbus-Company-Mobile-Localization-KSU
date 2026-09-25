@@ -30,7 +30,6 @@ jobs:
       - name: 构建模块
         env:
           MODULE_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-          MODULE_VERSION_CODE: ${{ github.run_number }}
         run: ./scripts/build.sh
 
       - uses: actions/upload-artifact@v7
